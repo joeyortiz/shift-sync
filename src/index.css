@@ -485,7 +485,9 @@ body {
   display: grid;
   grid-template-columns: 48px repeat(7, 1fr);
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
+  min-height: 0;
 }
 
 .cal-time-col {
@@ -850,6 +852,209 @@ body {
   color: #6d28d9;
   text-align: center;
   padding: 8px;
+}
+
+/* ─── CALENDAR SCROLL WRAPPER ─────────────────────────────── */
+.cal-scroll-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── MOBILE ───────────────────────────────────────────────── */
+
+/* Smooth momentum scrolling on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove tap highlight flash on iOS */
+button, [role="button"], .cal-nav-btn, .cal-add-btn,
+.taskbar-btn, .taskbar-start, .win-btn, .modal-btn,
+.settings-save-btn, .settings-copy-btn, .color-swatch,
+.theme-option, .desktop-icon, .mobile-tab {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+
+  /* ── Full-screen mobile window ── */
+  .win-window--mobile {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .win-content--mobile {
+    flex: 1;
+    overflow: auto;
+    background: #f0f0f0;
+    border-top: 2px solid #888;
+    /* Fill remaining height after titlebar */
+    height: 0;
+  }
+
+  /* ── Mobile taskbar / bottom tab bar ── */
+  .taskbar--mobile {
+    height: 56px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    border-top: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: stretch;
+    /* Safe area for iPhone home indicator */
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  .mobile-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    border-right: 1px solid rgba(255,255,255,0.15);
+    padding: 6px 0;
+    opacity: 0.65;
+    transition: opacity 0.15s;
+  }
+
+  .mobile-tab:last-of-type {
+    border-right: none;
+  }
+
+  .mobile-tab.active {
+    opacity: 1;
+    background: rgba(168, 85, 247, 0.25);
+    border-top: 2px solid #a855f7;
+  }
+
+  .mobile-tab-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .mobile-tab-label {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  }
+
+  .mobile-tab-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    min-width: 58px;
+  }
+
+  /* ── Boot screen ── */
+  .boot-screen {
+    padding: 20px 16px;
+    font-size: 17px;
+  }
+
+  .boot-line {
+    font-size: 17px;
+  }
+
+  .boot-input {
+    /* 16px prevents iOS Safari from auto-zooming on focus */
+    font-size: 16px !important;
+    width: 220px;
+  }
+
+  .boot-prompt-label {
+    font-size: 17px;
+  }
+
+  /* ── Calendar on mobile ── */
+
+  /* The scroll wrapper handles horizontal overflow */
+  .cal-scroll-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cal-days-header {
+    grid-template-columns: 36px repeat(7, minmax(52px, 1fr));
+    min-width: 408px;
+  }
+
+  .cal-body {
+    grid-template-columns: 36px repeat(7, minmax(52px, 1fr));
+    min-width: 408px;
+    overflow-y: auto;
+    overflow-x: visible;
+    flex: 1;
+  }
+
+  .cal-time-col {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+  }
+
+  .cal-day-header {
+    padding: 4px 2px;
+    font-size: 11px;
+  }
+
+  .cal-header {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .cal-header h2 {
+    font-size: 13px;
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
+
+  .cal-nav-btn, .cal-add-btn {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+
+  /* ── Settings on mobile ── */
+  .settings-container {
+    font-size: 14px;
+  }
+
+  /* ── Modal on mobile ── */
+  .modal-box {
+    width: 96%;
+    max-width: 96%;
+    min-width: unset;
+  }
+
+  /* Bigger tap targets for buttons */
+  .win-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
 }
 
 /* ─── SCROLLBAR ────────────────────────────────────────────── */

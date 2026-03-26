@@ -13,6 +13,7 @@ export default function Window({
   minimized = false,
   zIndex = 10,
   titlebarColor = 'linear-gradient(to right, #7c3aed, #4f46e5)',
+  isMobile = false,
 }) {
   const [pos, setPos] = useState(defaultPos)
   const [size, setSize] = useState(defaultSize)
@@ -23,10 +24,10 @@ export default function Window({
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 })
   const windowRef = useRef(null)
 
-  // Keep sizeRef in sync so resize-start captures the latest size
   useEffect(() => { sizeRef.current = size }, [size])
 
   const onTitlebarMouseDown = (e) => {
+    if (isMobile) return
     if (e.target.closest('.win-titlebar-btns')) return
     onFocus?.(id)
     dragging.current = true
@@ -35,6 +36,7 @@ export default function Window({
   }
 
   const onResizeMouseDown = (e) => {
+    if (isMobile) return
     e.stopPropagation()
     e.preventDefault()
     onFocus?.(id)
@@ -48,6 +50,7 @@ export default function Window({
   }
 
   useEffect(() => {
+    if (isMobile) return
     const onMouseMove = (e) => {
       if (dragging.current) {
         setPos({
@@ -68,17 +71,35 @@ export default function Window({
       dragging.current = false
       resizing.current = false
     }
-
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
     }
-  }, [])
+  }, [isMobile])
 
   if (minimized) return null
 
+  // ── Mobile: fill the entire desktop-area ──────────────────────
+  if (isMobile) {
+    return (
+      <div ref={windowRef} className="win-window win-window--mobile" style={{ zIndex }}>
+        <div className="win-titlebar" style={{ background: titlebarColor }}>
+          <span className="win-titlebar-icon">{icon}</span>
+          <span className="win-titlebar-title">{title}</span>
+          <div className="win-titlebar-btns">
+            <div className="win-btn close" onClick={() => onMinimize?.(id)} title="Back">✕</div>
+          </div>
+        </div>
+        <div className="win-content win-content--mobile">
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Desktop: floating draggable window ────────────────────────
   return (
     <div
       ref={windowRef}
@@ -86,7 +107,6 @@ export default function Window({
       style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, zIndex }}
       onMouseDown={() => onFocus?.(id)}
     >
-      {/* Title bar */}
       <div
         className="win-titlebar"
         style={{ background: titlebarColor }}
@@ -99,13 +119,9 @@ export default function Window({
           <div className="win-btn close" onClick={() => onClose?.(id)} title="Close">✕</div>
         </div>
       </div>
-
-      {/* Content */}
       <div className="win-content" style={{ height: size.h - 26 }}>
         {children}
       </div>
-
-      {/* Resize handle — bottom-right corner */}
       <div className="win-resize-handle" onMouseDown={onResizeMouseDown} />
     </div>
   )

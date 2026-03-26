@@ -189,6 +189,9 @@ export default function CalendarWindow({ user, group, profile }) {
         </div>
       </div>
 
+      {/* Horizontally scrollable wrapper (days header + body scroll together) */}
+      <div className="cal-scroll-wrapper">
+
       {/* Days header */}
       <div className="cal-days-header">
         <div className="cal-day-header" style={{ background: '#ccc' }} />
@@ -284,6 +287,8 @@ export default function CalendarWindow({ user, group, profile }) {
           )
         })}
       </div>
+
+      </div> {/* end cal-scroll-wrapper */}
 
       {/* Legend */}
       <div className="cal-legend">

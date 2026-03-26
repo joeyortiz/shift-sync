@@ -4,6 +4,7 @@ import Taskbar from './Taskbar'
 import DesktopIcon from './DesktopIcon'
 import CalendarWindow from './CalendarWindow'
 import SettingsWindow, { THEMES } from './SettingsWindow'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const WINDOW_DEFS = {
   calendar: {
@@ -23,6 +24,7 @@ const WINDOW_DEFS = {
 }
 
 export default function Desktop({ user, group, profile: initialProfile, onSignOut }) {
+  const isMobile = useIsMobile()
   const [profile, setProfile] = useState(initialProfile)
   const [openWindows, setOpenWindows] = useState(['calendar'])
   const [minimizedWindows, setMinimizedWindows] = useState({})
@@ -78,30 +80,40 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
 
   const taskbarWindows = openWindows.map(id => WINDOW_DEFS[id]).filter(Boolean)
 
+  // On mobile, a window is visible only if it's open, not minimized, and active
+  const isWindowVisible = (id) => {
+    if (!openWindows.includes(id)) return false
+    if (minimizedWindows[id]) return false
+    if (isMobile) return id === activeWindowId
+    return true
+  }
+
   return (
     <div
       className="desktop"
       style={{ background: theme.desktop }}
     >
       <div className="desktop-area">
-        {/* Desktop icons */}
-        <div className="desktop-icons">
-          <DesktopIcon
-            icon="📅"
-            label="Calendar"
-            active={activeWindowId === 'calendar'}
-            onDoubleClick={() => openWindow('calendar')}
-          />
-          <DesktopIcon
-            icon="⚙️"
-            label="Settings"
-            active={activeWindowId === 'settings'}
-            onDoubleClick={() => openWindow('settings')}
-          />
-        </div>
+        {/* Desktop icons — hidden on mobile */}
+        {!isMobile && (
+          <div className="desktop-icons">
+            <DesktopIcon
+              icon="📅"
+              label="Calendar"
+              active={activeWindowId === 'calendar'}
+              onDoubleClick={() => openWindow('calendar')}
+            />
+            <DesktopIcon
+              icon="⚙️"
+              label="Settings"
+              active={activeWindowId === 'settings'}
+              onDoubleClick={() => openWindow('settings')}
+            />
+          </div>
+        )}
 
         {/* Calendar window */}
-        {openWindows.includes('calendar') && (
+        {isWindowVisible('calendar') && (
           <Window
             {...WINDOW_DEFS.calendar}
             onClose={closeWindow}
@@ -110,6 +122,7 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
             minimized={!!minimizedWindows.calendar}
             zIndex={zOrders.calendar}
             titlebarColor={theme.titlebar}
+            isMobile={isMobile}
           >
             <CalendarWindow
               user={user}
@@ -120,7 +133,7 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
         )}
 
         {/* Settings window */}
-        {openWindows.includes('settings') && (
+        {isWindowVisible('settings') && (
           <Window
             {...WINDOW_DEFS.settings}
             onClose={closeWindow}
@@ -129,6 +142,7 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
             minimized={!!minimizedWindows.settings}
             zIndex={zOrders.settings}
             titlebarColor={theme.titlebar}
+            isMobile={isMobile}
           >
             <SettingsWindow
               user={user}
@@ -148,6 +162,7 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
         activeWindowId={activeWindowId}
         minimizedWindows={minimizedWindows}
         theme={theme}
+        isMobile={isMobile}
       />
     </div>
   )
