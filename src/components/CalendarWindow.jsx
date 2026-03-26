@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { getShiftsForWeek, getGroupMembers, subscribeToShifts, deleteShift } from '../lib/supabase'
 import ShiftEntryModal from './ShiftEntryModal'
 
-const HOUR_HEIGHT = 64 // px per hour
 const DAY_START = 6   // 6am
 const DAY_END = 23    // 11pm
 const TOTAL_HOURS = DAY_END - DAY_START
@@ -40,11 +39,11 @@ function formatTime(timeStr) {
   return `${hour}:${String(m).padStart(2, '0')}${ampm}`
 }
 
-function getShiftStyle(shift) {
+function getShiftStyle(shift, hourHeight) {
   const startMin = timeToMinutes(shift.start_time) - DAY_START * 60
   const endMin = timeToMinutes(shift.end_time) - DAY_START * 60
-  const top = Math.max(0, (startMin / 60) * HOUR_HEIGHT)
-  const height = Math.max(20, ((endMin - startMin) / 60) * HOUR_HEIGHT)
+  const top = Math.max(0, (startMin / 60) * hourHeight)
+  const height = Math.max(16, ((endMin - startMin) / 60) * hourHeight)
   return { top, height }
 }
 
@@ -59,25 +58,18 @@ function layoutShifts(shifts) {
   const result = sorted.map(shift => {
     const start = timeToMinutes(shift.start_time)
     const end = timeToMinutes(shift.end_time)
-    let placed = false
     for (let c = 0; c < cols.length; c++) {
       if (cols[c] <= start) {
         cols[c] = end
-        placed = true
         return { shift, col: c }
       }
     }
-    if (!placed) {
-      cols.push(end)
-      return { shift, col: cols.length - 1 }
-    }
+    cols.push(end)
+    return { shift, col: cols.length - 1 }
   })
 
   const numCols = cols.length
-  return result.map(item => ({
-    ...item,
-    numCols,
-  }))
+  return result.map(item => ({ ...item, numCols }))
 }
 
 export default function CalendarWindow({ user, group, profile }) {
@@ -88,6 +80,22 @@ export default function CalendarWindow({ user, group, profile }) {
   const [editShift, setEditShift] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hourHeight, setHourHeight] = useState(24)
+
+  // Measure the calendar body and compute a fitting hour height
+  const bodyRef = useRef(null)
+  useEffect(() => {
+    if (!bodyRef.current) return
+    const obs = new ResizeObserver(entries => {
+      const h = entries[0]?.contentRect.height ?? 0
+      if (h > 0) {
+        // Subtract the 8px top offset, divide remaining height across all hours
+        setHourHeight(Math.max(20, Math.floor((h - 8) / TOTAL_HOURS)))
+      }
+    })
+    obs.observe(bodyRef.current)
+    return () => obs.disconnect()
+  }, [])
 
   const loadData = useCallback(async () => {
     if (!group?.id) return
@@ -135,7 +143,7 @@ export default function CalendarWindow({ user, group, profile }) {
 
   const handleShiftClick = (e, shift) => {
     e.stopPropagation()
-    if (shift.user_id !== user.id) return // can only edit own shifts
+    if (shift.user_id !== user.id) return
     setEditShift(shift)
     setSelectedDate(shift.shift_date)
     setShowModal(true)
@@ -198,13 +206,13 @@ export default function CalendarWindow({ user, group, profile }) {
         })}
       </div>
 
-      {/* Calendar body */}
-      <div className="cal-body">
+      {/* Calendar body — ref here so ResizeObserver can measure it */}
+      <div className="cal-body" ref={bodyRef}>
         {/* Time labels column */}
         <div className="cal-time-col">
           <div style={{ height: 8 }} />
           {HOURS.map(h => (
-            <div key={h} className="cal-time-label">
+            <div key={h} className="cal-time-label" style={{ height: hourHeight }}>
               {h === 12 ? '12pm' : h > 12 ? `${h - 12}pm` : `${h}am`}
             </div>
           ))}
@@ -221,19 +229,18 @@ export default function CalendarWindow({ user, group, profile }) {
             <div
               key={di}
               className={`cal-day-col ${isToday ? 'today-col' : ''}`}
-              style={{ height: TOTAL_HOURS * HOUR_HEIGHT + 8 }}
+              style={{ height: TOTAL_HOURS * hourHeight + 8 }}
               onClick={() => handleDayClick(date)}
-              title="Double-click to add shift"
+              title="Click to add shift"
             >
-              {/* Hour grid lines */}
               <div style={{ height: 8 }} />
               {HOURS.map(h => (
-                <div key={h} className="cal-hour-line" />
+                <div key={h} className="cal-hour-line" style={{ height: hourHeight }} />
               ))}
 
               {/* Shift blocks */}
               {laid.map(({ shift, col, numCols }, i) => {
-                const { top, height } = getShiftStyle(shift)
+                const { top, height } = getShiftStyle(shift, hourHeight)
                 const color = shift.profiles?.color || '#a855f7'
                 const isOwn = shift.user_id === user.id
                 const width = numCols > 1 ? `calc(${100 / numCols}% - 6px)` : 'calc(100% - 8px)'

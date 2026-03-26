@@ -281,6 +281,30 @@ body {
   border-top: 2px solid #888;
 }
 
+.win-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 10;
+  /* Classic diagonal grip lines */
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2px,
+    #888 2px,
+    #888 3px,
+    transparent 3px,
+    transparent 5px,
+    #fff 5px,
+    #fff 6px,
+    transparent 6px,
+    transparent 8px
+  );
+}
+
 /* ─── TASKBAR ──────────────────────────────────────────────── */
 .taskbar {
   height: 36px;
