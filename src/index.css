@@ -356,6 +356,11 @@ body {
   background: #d8d8e8;
 }
 
+.taskbar-btn.minimized {
+  opacity: 0.65;
+  font-style: italic;
+}
+
 .taskbar-clock {
   margin-left: auto;
   height: 26px;

@@ -80,46 +80,21 @@ export async function getUserGroup(userId) {
   return data ? data.groups : null
 }
 
-export async function createGroup(userId) {
+export async function createGroup() {
   const code = Math.random().toString(36).slice(2, 8).toUpperCase()
-  const { data: group, error: gErr } = await supabase
-    .from('groups')
-    .insert({ name: 'My Crew', invite_code: code, created_by: userId })
-    .select()
-    .single()
-  if (gErr) throw gErr
-
-  const { error: mErr } = await supabase
-    .from('group_members')
-    .insert({ group_id: group.id, user_id: userId })
-  if (mErr) throw mErr
-
-  return group
+  const { data, error } = await supabase.rpc('create_group_for_user', {
+    p_invite_code: code
+  })
+  if (error) throw error
+  return data
 }
 
 export async function joinGroup(userId, code) {
-  const { data: group, error: gErr } = await supabase
-    .from('groups')
-    .select('*')
-    .eq('invite_code', code.toUpperCase().trim())
-    .single()
-  if (gErr) throw new Error('Invalid invite code. Try again.')
-
-  const { data: existing } = await supabase
-    .from('group_members')
-    .select('id')
-    .eq('group_id', group.id)
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (existing) return group
-
-  const { error: mErr } = await supabase
-    .from('group_members')
-    .insert({ group_id: group.id, user_id: userId })
-  if (mErr) throw mErr
-
-  return group
+  const { data, error } = await supabase.rpc('join_group_for_user', {
+    p_invite_code: code.toUpperCase().trim()
+  })
+  if (error) throw error
+  return data
 }
 
 export async function getGroupMembers(groupId) {

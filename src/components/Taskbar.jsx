@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export default function Taskbar({ windows, onWindowClick, activeWindowId, theme }) {
+export default function Taskbar({ windows, onWindowClick, activeWindowId, minimizedWindows = {}, theme }) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Taskbar({ windows, onWindowClick, activeWindowId, theme 
       {windows.map(w => (
         <div
           key={w.id}
-          className={`taskbar-btn ${w.id === activeWindowId ? 'active' : ''}`}
+          className={`taskbar-btn ${w.id === activeWindowId && !minimizedWindows[w.id] ? 'active' : ''} ${minimizedWindows[w.id] ? 'minimized' : ''}`}
           onClick={() => onWindowClick(w.id)}
           title={w.title}
         >

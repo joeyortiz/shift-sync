@@ -25,6 +25,7 @@ const WINDOW_DEFS = {
 export default function Desktop({ user, group, profile: initialProfile, onSignOut }) {
   const [profile, setProfile] = useState(initialProfile)
   const [openWindows, setOpenWindows] = useState(['calendar'])
+  const [minimizedWindows, setMinimizedWindows] = useState({})
   const [activeWindowId, setActiveWindowId] = useState('calendar')
   const [zOrders, setZOrders] = useState({ calendar: 10, settings: 9 })
   const [zCounter, setZCounter] = useState(20)
@@ -38,6 +39,16 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
 
   const closeWindow = useCallback((id) => {
     setOpenWindows(prev => prev.filter(w => w !== id))
+    setMinimizedWindows(prev => { const n = { ...prev }; delete n[id]; return n })
+  }, [])
+
+  const minimizeWindow = useCallback((id) => {
+    setMinimizedWindows(prev => ({ ...prev, [id]: true }))
+  }, [])
+
+  const restoreWindow = useCallback((id) => {
+    setMinimizedWindows(prev => { const n = { ...prev }; delete n[id]; return n })
+    focusWindow(id)
   }, [])
 
   const focusWindow = useCallback((id) => {
@@ -50,10 +61,14 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
   }, [])
 
   const handleTaskbarClick = (id) => {
-    if (openWindows.includes(id)) {
-      focusWindow(id)
-    } else {
+    if (!openWindows.includes(id)) {
       openWindow(id)
+    } else if (minimizedWindows[id]) {
+      restoreWindow(id)
+    } else if (activeWindowId === id) {
+      minimizeWindow(id)
+    } else {
+      focusWindow(id)
     }
   }
 
@@ -91,6 +106,8 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
             {...WINDOW_DEFS.calendar}
             onClose={closeWindow}
             onFocus={focusWindow}
+            onMinimize={minimizeWindow}
+            minimized={!!minimizedWindows.calendar}
             zIndex={zOrders.calendar}
             titlebarColor={theme.titlebar}
           >
@@ -108,6 +125,8 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
             {...WINDOW_DEFS.settings}
             onClose={closeWindow}
             onFocus={focusWindow}
+            onMinimize={minimizeWindow}
+            minimized={!!minimizedWindows.settings}
             zIndex={zOrders.settings}
             titlebarColor={theme.titlebar}
           >
@@ -127,6 +146,7 @@ export default function Desktop({ user, group, profile: initialProfile, onSignOu
         windows={taskbarWindows}
         onWindowClick={handleTaskbarClick}
         activeWindowId={activeWindowId}
+        minimizedWindows={minimizedWindows}
         theme={theme}
       />
     </div>

@@ -9,12 +9,13 @@ export default function Window({
   defaultSize = { w: 600, h: 420 },
   onClose,
   onFocus,
+  onMinimize,
+  minimized = false,
   zIndex = 10,
   titlebarColor = 'linear-gradient(to right, #7c3aed, #4f46e5)',
 }) {
   const [pos, setPos] = useState(defaultPos)
   const [size] = useState(defaultSize)
-  const [minimized, setMinimized] = useState(false)
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const windowRef = useRef(null)
@@ -72,7 +73,7 @@ export default function Window({
         <span className="win-titlebar-icon">{icon}</span>
         <span className="win-titlebar-title">{title}</span>
         <div className="win-titlebar-btns">
-          <div className="win-btn minimize" onClick={() => setMinimized(true)} title="Minimize">_</div>
+          <div className="win-btn minimize" onClick={() => onMinimize?.(id)} title="Minimize">_</div>
           <div className="win-btn close" onClick={() => onClose?.(id)} title="Close">✕</div>
         </div>
       </div>
