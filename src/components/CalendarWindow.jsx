@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getShiftsForWeek, getGroupMembers, subscribeToShifts, deleteShift } from '../lib/supabase'
+import { downloadICS } from '../lib/ics'
 import ShiftEntryModal from './ShiftEntryModal'
 
 const DAY_START = 6   // 6am
@@ -185,6 +186,16 @@ export default function CalendarWindow({ user, group, profile }) {
           <button className="cal-nav-btn" onClick={goNext}>Next ▶</button>
           <button className="cal-add-btn" onClick={() => { setEditShift(null); setSelectedDate(today); setShowModal(true) }}>
             + Add Shift
+          </button>
+          <button
+            className="cal-ics-btn"
+            title="Download this week's shifts as a .ics file for Apple Calendar"
+            onClick={() => {
+              const filename = `shifts-${weekStart.toISOString().slice(0, 10)}.ics`
+              downloadICS(shifts, filename, `Shift Sync — ${weekLabel}`)
+            }}
+          >
+            📅 Export
           </button>
         </div>
       </div>

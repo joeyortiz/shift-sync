@@ -458,6 +458,25 @@ body {
 
 .cal-add-btn:hover { background: #6d28d9; }
 
+.cal-ics-btn {
+  padding: 3px 10px;
+  background: #0e7490;
+  border: 2px solid #22d3ee;
+  border-right-color: #0a5468;
+  border-bottom-color: #0a5468;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.cal-ics-btn:hover { background: #0c6680; }
+.cal-ics-btn:active {
+  border-color: #0a5468;
+  border-right-color: #22d3ee;
+  border-bottom-color: #22d3ee;
+}
+
 .cal-days-header {
   display: grid;
   grid-template-columns: 48px repeat(7, 1fr);
@@ -1032,7 +1051,7 @@ button, [role="button"], .cal-nav-btn, .cal-add-btn,
     text-align: center;
   }
 
-  .cal-nav-btn, .cal-add-btn {
+  .cal-nav-btn, .cal-add-btn, .cal-ics-btn {
     font-size: 14px;
     padding: 4px 8px;
   }
